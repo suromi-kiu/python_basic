@@ -40,7 +40,7 @@
 
 <br>
 
-# Mac chagnger
+# Mac changer
 
 ## Manual
 ```python3
