@@ -116,4 +116,15 @@ iptables --policy FORWARD ACCEPT
 ./http_sniffer.py -i <iface>
 ```
 <br>
+
+## New ICMP_TRACER
+### help
+you need be root to execute the script
+```python3
+./new_icmp_tracer.py -h
+```
+### to execute
+```python3
+./new_icmp_tracer.py -wp <ip 1.1.1.1> or <range ip: 1.1.1.1-254>
+```
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"><br><br>
