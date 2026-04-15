@@ -127,4 +127,14 @@ you need be root to execute the script
 ```python3
 ./new_icmp_tracer.py -wp <ip 1.1.1.1> or <range ip: 1.1.1.1-254>
 ```
+## Script to solve Crack The Gate 2
+### help
+you have to provide the mail and the dictionary
+```python3
+./new_icmp_tracer.py -h
+```
+### to execute
+```python3
+./force_brute.py -t <url> -w <password.txt>
+```
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif"><br><br>
